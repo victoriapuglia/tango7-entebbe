@@ -484,8 +484,12 @@ footer{background:#04090d;padding:clamp(60px,9vw,110px) 0 40px;overflow:hidden;p
     ctl.setAttribute('aria-label', p ? 'Pause background video' : 'Play background video');
     ctl.querySelector('use').setAttribute('href', p ? '#i-pause' : '#i-play');
   });
-  // pause offscreen to save battery
-  new IntersectionObserver(([e]) => { if (ctl.getAttribute('aria-label').startsWith('Pause')) e.isIntersecting ? vid.play().catch(()=>{}) : vid.pause(); }).observe(vid);
+  // pause offscreen to save battery; resume when visible again unless the visitor paused it
+  const wanted = () => !ctl.hidden && ctl.getAttribute('aria-label').startsWith('Pause');
+  let onScreen = true;
+  new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; if (wanted()) onScreen ? vid.play().catch(()=>{}) : vid.pause(); }).observe(vid);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && onScreen && wanted()) vid.play().catch(()=>{}); });
+  addEventListener('pointerdown', () => { if (vid.paused && onScreen && wanted()) vid.play().catch(()=>{}); }, {once:true, passive:true});
 
   // Open/closed status in Entebbe time (UTC+3)
   const now = new Date(Date.now() + 3*3600e3), d = now.getUTCDay(), h = now.getUTCHours() + now.getUTCMinutes()/60;
