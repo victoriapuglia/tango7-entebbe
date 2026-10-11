@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://victoriapuglia.github.io/tango7-entebbe/sitemap.xml
